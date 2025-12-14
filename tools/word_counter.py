@@ -1,3 +1,4 @@
+""" A simple word counter tool that counts the number of words and characters in a given text. """
 def count_words(text):
     words = text.strip().split()
     return len(words), len(text)
