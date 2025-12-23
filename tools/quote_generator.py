@@ -4,6 +4,9 @@ QUOTES = [
 "First, solve the problem. Then, write the code.",
 "Experience is the name everyone gives to their mistakes.",
 "In theory, theory and practice are the same. In practice, they’re not."
+"Programs must be written for people to read, and only incidentally for machines to execute.",
+"Debugging is twice as hard as writing the code in the first place.",
+"Simplicity is the soul of efficiency."
 ]
 
 if __name__ == "__main__":
