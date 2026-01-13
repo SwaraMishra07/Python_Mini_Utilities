@@ -1,25 +1,66 @@
-# tools/todo_cli.py
-
 """
 Simple CLI To-Do List
 Beginner-friendly and uses only Python standard library.
+
+Improvements:
+- atomic file writes to avoid lost writes when multiple processes write
+- helper `add_task()` to prevent duplicates
 """
 
+import os
+import tempfile
+
 TODO_FILE = "todos.txt"
+MAX_TASK_LEN = 36
+
+
+def _todo_path():
+    return os.path.join(os.path.dirname(__file__), TODO_FILE)
 
 
 def load_todos():
+    path = _todo_path()
     try:
-        with open(TODO_FILE, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             return [line.strip() for line in f.readlines()]
     except FileNotFoundError:
         return []
 
 
 def save_todos(todos):
-    with open(TODO_FILE, "w") as f:
-        for todo in todos:
-            f.write(todo + "\n")
+    """Atomically write todos to disk to avoid lost writes from concurrent writers."""
+    path = _todo_path()
+    dirpath = os.path.dirname(path) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=TODO_FILE, dir=dirpath)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            for todo in todos:
+                f.write(todo + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    finally:
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except OSError:
+            pass
+
+
+def add_task(task: str) -> bool:
+    """Add `task` if it's not a duplicate (case-insensitive). Returns True if added."""
+    task = task.strip()
+    if not task:
+        return False
+    if len(task) > MAX_TASK_LEN:
+        task = task[:MAX_TASK_LEN]
+    todos = load_todos()
+    normalized = {t.strip().lower() for t in todos}
+    if task.lower() in normalized:
+        return False
+    todos.append(task)
+    save_todos(todos)
+    return True
 
 
 def show_todos(todos):
@@ -50,9 +91,12 @@ def main():
         elif choice == "2":
             task = input("Enter new task: ").strip()
             if task:
-                todos.append(task)
-                save_todos(todos)
-                print("Task added ✅")
+                added = add_task(task)
+                if added:
+                    todos = load_todos()
+                    print("Task added ✅")
+                else:
+                    print("Task is a duplicate or empty ❌")
             else:
                 print("Task cannot be empty ❌")
 

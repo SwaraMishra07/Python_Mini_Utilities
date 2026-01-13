@@ -1,9 +1,13 @@
-from flask import Flask, render_template_string, request, redirect, url_for
+from flask import Flask, render_template_string, request, redirect, url_for, flash
+import os
 
-from todo_cli import load_todos, save_todos
+from todo_cli import load_todos, save_todos, add_task
 
 
 app = Flask(__name__)
+MAX_TASK_LEN = 36
+
+app.secret_key = os.getenv("FLASK_SECRET", "dev-secret key change it")
 
 
 TEMPLATE = """
@@ -49,6 +53,14 @@ TEMPLATE = """
         gap: 8px;
         margin-bottom: 16px;
       }
+      .flash {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
       input[type="text"] {
         flex: 1;
         padding: 8px 10px;
@@ -89,6 +101,13 @@ TEMPLATE = """
         justify-content: space-between;
         padding: 8px 0;
         border-bottom: 1px solid #e5e7eb;
+      }
+      li span {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
       }
       li:last-child {
         border-bottom: none;
@@ -140,6 +159,12 @@ TEMPLATE = """
         <button class="primary" type="submit">Add</button>
       </form>
 
+      {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="flash">{{ messages[0] }}</div>
+      {% endif %}
+      {% endwith %}
+
       {% if todos %}
       <ul>
         {% for i, task in enumerate(todos) %}
@@ -160,8 +185,6 @@ TEMPLATE = """
       {% else %}
       <div class="empty">No tasks yet ✨</div>
       {% endif %}
-
-      <small>Stored in tools/todos.txt and shared with the CLI.</small>
     </div>
   </body>
 </html>
@@ -178,9 +201,12 @@ def index():
 def add_todo():
     task = request.form.get("task", "").strip()
     if task:
-        todos = load_todos()
-        todos.append(task)
-        save_todos(todos)
+        if len(task) > MAX_TASK_LEN:
+            flash(f"Task must be less than {MAX_TASK_LEN} characters")
+            return redirect(url_for("index"))
+        added = add_task(task)
+        if not added:
+            flash("Task is a duplicate or invalid")
     return redirect(url_for("index"))
 
 
@@ -194,5 +220,5 @@ def delete_todo(index: int):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG") == "1")
 
