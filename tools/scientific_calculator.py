@@ -136,7 +136,7 @@ class ScientificCalculator:
     def run_interactive(self):
         print("Scientific Calculator (CLI)")
         print("Type 'help' for functions, 'exit' to quit.")
-        print("Features: History (↑), Variables (x=5), Previous Ans (ans)\n")
+        print("Features: History (↑, if available), Variables (x=5), Previous Ans (ans)\n")
 
         while True:
             try:
