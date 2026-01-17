@@ -1,42 +1,161 @@
 import json
 import csv
 import os
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from collections import defaultdict
+from typing import Dict, List, Union, Optional
 
 class FinanceTracker:
     def __init__(self):
+        """Initialize the Finance Tracker with data file."""
         self.file = "finance_data.json"
+        self.max_attempts = 3
         self.data = self.load_data()
     
-    def load_data(self):
-        if os.path.exists(self.file):
+    def load_data(self) -> Dict:
+        """Load data from JSON file with validation."""
+        if not os.path.exists(self.file):
+            return {"transactions": [], "goals": []}
+            
+        try:
             with open(self.file, 'r') as f:
-                return json.load(f)
-        return {"transactions": [], "goals": []}
+                data = json.load(f)
+                
+            # Validate data structure
+            if not all(key in data for key in ["transactions", "goals"]):
+                print("⚠️  Data file is corrupted. Creating a new one.")
+                return {"transactions": [], "goals": []}
+                
+            # Validate transactions
+            if not isinstance(data["transactions"], list):
+                data["transactions"] = []
+                
+            # Validate goals
+            if not isinstance(data["goals"], list):
+                data["goals"] = []
+                
+            return data
+            
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"⚠️  Error loading data: {e}. Starting with empty data.")
+            return {"transactions": [], "goals": []}
     
-    def save_data(self):
-        with open(self.file, 'w') as f:
-            json.dump(self.data, f, indent=2)
-    
-    def add_transaction(self):
-        print("\n=== Add Transaction ===")
-        t_type = input("Type (income/expense): ").lower()
-        
-        # Validate amount input
-        while True:
+    def save_data(self) -> bool:
+        """Save data to JSON file with backup and error handling."""
+        if not self.data:
+            print("⚠️  No data to save.")
+            return False
+            
+        # Create backup
+        backup_file = f"{self.file}.bak"
+        if os.path.exists(self.file):
             try:
-                amount = float(input("Amount: $"))
-                if amount <= 0:
-                    print("❌ Amount must be greater than 0. Please try again.")
-                    continue
-                break
-            except ValueError:
-                print("❌ Invalid amount. Please enter a valid number.")
+                import shutil
+                shutil.copy2(self.file, backup_file)
+            except Exception as e:
+                print(f"⚠️  Could not create backup: {e}")
         
-        desc = input("Description: ")
-        category = input("Category: ")
-        date = input("Date (YYYY-MM-DD) or Enter for today: ") or datetime.now().strftime("%Y-%m-%d")
+        # Save new data
+        try:
+            temp_file = f"{self.file}.tmp"
+            with open(temp_file, 'w') as f:
+                json.dump(self.data, f, indent=2)
+                
+            # Atomic write
+            if os.path.exists(self.file):
+                os.replace(temp_file, self.file)
+            else:
+                os.rename(temp_file, self.file)
+                
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error saving data: {e}")
+            # Try to restore from backup
+            if os.path.exists(backup_file):
+                try:
+                    os.replace(backup_file, self.file)
+                    print("⚠️  Restored from backup after save error.")
+                except Exception as restore_error:
+                    print(f"❌ Critical: Could not restore from backup: {restore_error}")
+            return False
+    
+    def _validate_date(self, date_str: str) -> bool:
+        """Validate date format and ensure it's not in the future."""
+        try:
+            input_date = datetime.strptime(date_str, "%Y-%m-%d")
+            if input_date.date() > datetime.now().date():
+                print("❌ Future dates are not allowed.")
+                return False
+            return True
+        except ValueError:
+            print("❌ Invalid date format. Please use YYYY-MM-DD.")
+            return False
+
+    def _get_valid_input(self, prompt: str, validation_func, error_msg: str, max_attempts: int = 3):
+        """Generic input validation with retry logic."""
+        for attempt in range(max_attempts):
+            user_input = input(prompt).strip()
+            if validation_func(user_input):
+                return user_input
+            print(f"❌ {error_msg} (Attempt {attempt + 1}/{max_attempts})")
+        raise ValueError(f"Maximum attempts reached for input: {prompt}")
+
+    def _validate_category(self, category: str) -> bool:
+        """Validate category name (alphanumeric + spaces)."""
+        return bool(re.match(r'^[a-zA-Z0-9\s]+$', category))
+
+    def _validate_amount(self, amount_str: str) -> bool:
+        """Validate amount is a positive number."""
+        try:
+            amount = float(amount_str)
+            return amount > 0
+        except ValueError:
+            return False
+
+    def add_transaction(self):
+        """Add a new transaction with validated inputs."""
+        print("\n=== Add Transaction ===")
+        
+        # Get and validate transaction type
+        t_type = ""
+        while t_type not in ["income", "expense"]:
+            t_type = input("Type (income/expense): ").lower().strip()
+            if t_type not in ["income", "expense"]:
+                print("❌ Invalid type. Please enter 'income' or 'expense'.")
+        
+        # Get and validate amount
+        amount = 0.0
+        while amount <= 0:
+            try:
+                amount = float(input("Amount: $").strip())
+                if amount <= 0:
+                    print("❌ Amount must be greater than 0.")
+            except ValueError:
+                print("❌ Please enter a valid number.")
+        
+        # Get and validate description
+        desc = ""
+        while not desc.strip():
+            desc = input("Description: ").strip()
+            if not desc:
+                print("❌ Description cannot be empty.")
+        
+        # Get and validate category
+        category = ""
+        while not self._validate_category(category):
+            category = input("Category: ").strip()
+            if not self._validate_category(category):
+                print("❌ Category can only contain letters, numbers, and spaces.")
+        
+        # Get and validate date
+        date = ""
+        while not date:
+            date_input = input("Date (YYYY-MM-DD) or Enter for today: ").strip()
+            date = date_input if date_input else datetime.now().strftime("%Y-%m-%d")
+            if not self._validate_date(date):
+                date = ""
         
         self.data["transactions"].append({
             "type": t_type, "amount": amount, "description": desc,
@@ -81,31 +200,40 @@ class FinanceTracker:
             print(f"{t['date']} {sign}${t['amount']:.2f} - {t['description']}")
     
     def add_goal(self):
-        print("\n=== Add Savings Goal ===")
-        name = input("Goal name: ")
+        """Add or update a savings goal with validated inputs."""
+        print("\n=== Add/Update Savings Goal ===")
         
-        # Validate target amount input
-        while True:
+        # Get and validate goal name
+        name = ""
+        while not name.strip():
+            name = input("Goal name: ").strip()
+            if not name:
+                print("❌ Goal name cannot be empty.")
+        
+        # Get and validate target amount
+        target = 0.0
+        while target <= 0:
             try:
-                target = float(input("Target amount: $"))
-                if target <= 0:
-                    print("❌ Target amount must be greater than 0. Please try again.")
+                target_input = input("Target amount: $").strip()
+                if not target_input:
+                    print("❌ Target amount is required.")
                     continue
-                break
+                target = float(target_input)
+                if target <= 0:
+                    print("❌ Target must be greater than 0.")
             except ValueError:
-                print("❌ Invalid target amount. Please enter a valid number.")
+                print("❌ Please enter a valid number.")
         
-        # Validate current amount input
-        while True:
-            current_input = input("Current amount: $") or "0"
+        # Get and validate current amount
+        current = -1
+        while current < 0:
+            current_input = input("Current amount (default: 0): $").strip() or "0"
             try:
                 current = float(current_input)
                 if current < 0:
-                    print("❌ Current amount cannot be negative. Please try again.")
-                    continue
-                break
+                    print("❌ Current amount cannot be negative.")
             except ValueError:
-                print("❌ Invalid current amount. Please enter a valid number.")
+                print("❌ Please enter a valid number.")
         
         # Update existing or add new
         for goal in self.data["goals"]:
