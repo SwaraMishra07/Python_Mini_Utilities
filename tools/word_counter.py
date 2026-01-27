@@ -23,7 +23,13 @@ def count_words(text):
 if __name__ == "__main__":
     text = input("Enter text: ")
 
+# Check for empty input
+    if not text.strip():
+        print("❌ No text provided. Please enter valid input.")
+        exit()
+
     word_count, char_count = count_words(text)
 
     print(f"Words: {word_count}")
     print(f"Characters (excluding extra spaces): {char_count}")
+
