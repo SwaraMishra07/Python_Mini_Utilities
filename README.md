@@ -26,6 +26,7 @@ Each utility is a standalone Python script:
 * 🔄 Unit Converter
 * 🌡️ Temperature Converter 
 * 🧩 Maze generator
+* 💱 Currency Converter
 
 Contributors can add new tools or improve existing ones.
 
@@ -46,7 +47,8 @@ python-mini-utilities/
 │   ├── todo_flask.py            # Flask-based To-Do app
 │   ├── word_counter.py          # Word/character counter for text files
 │   ├── unit_converter.py        # Convert between length, weight, volume
-│   └── maze.py                  # Maze generator & solver (Unicode terminal)
+│   ├── maze.py                  # Maze generator & solver (Unicode terminal)
+│   └── currency_converter.py    # Convert between different currencies
 │
 ├── docs/
 │   └── contributing.md          # Contribution guidelines
