@@ -16,37 +16,46 @@ Perfect for:
 Each utility is a standalone Python script:
 
 * 🔐 Password Strength Checker
+* 🔑 password generator 
 * 📝 Word Counter
 * 💬 Random Quote Generator
 * 📁 File Renamer *(coming soon)*
-* ✅ Simple CLI To‑Do List 
+* ✅ Simple CLI To‑Do List
+* 📑 Priority Based CLI To-Do
 * 📱 QR Code Generator
+* 🔄 Unit Converter
+* 🌡️ Temperature Converter 
+* 🧩 Maze generator
+* 💱 Currency Converter
 
 Contributors can add new tools or improve existing ones.
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
-```
+```text
 python-mini-utilities/
 │
 ├── tools/
-│   ├── password_checker.py
-│   ├── word_counter.py
-│   ├── quote_generator.py
-    └── qr_code_generator.py
+│   ├── password_checker.py      # Validate password strength
+│   ├── password_generator.py    # Generate secure random passwords
+│   ├── qr_code_generator.py     # QR code generator from text/URL
+│   ├── quote_generator.py       # Random programming quotes
+│   ├── temperature_convertor.py # Temperature conversion tool
+│   ├── todo_cli.py              # CLI To-Do list with priority support
+│   ├── todo_flask.py            # Flask-based To-Do app
+│   ├── word_counter.py          # Word/character counter for text files
+│   ├── unit_converter.py        # Convert between length, weight, volume
+│   ├── maze.py                  # Maze generator & solver (Unicode terminal)
+│   └── currency_converter.py    # Convert between different currencies
 │
 ├── docs/
-│   └── contributing.md
+│   └── contributing.md          # Contribution guidelines
 │
-├── README.md
-├── requirements.txt
-└── .gitignore
+├── README.md                    # This file
+└── todos.txt                    # Example storage for To-Do CLI
 ```
-
----
-
 ## 🚀 How to Run
 
 1. Clone the repository
@@ -117,4 +126,5 @@ Please keep PRs small and focused.
 ---
 
 Happy coding & welcome to open source 🚀
+
 
