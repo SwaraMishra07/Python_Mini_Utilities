@@ -179,7 +179,7 @@ class PortWatcher:
         if busy_ports and len(busy_ports) < total_scanned:
             print(f"\n{Colors.BOLD}Recommendations:{Colors.ENDC}")
             print(f"  • Use -f flag to find available ports")
-            print(f"  • Check --examples to see all services")
+            print(f"  • Check --manual to see all services")
         
         print("=" * 70 + "\n")
 
