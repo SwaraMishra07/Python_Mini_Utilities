@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
 # Check for empty input
     if not text.strip():
-        print("❌ No text provided. Please enter valid input.")
+        print("❌ No input provided. Please enter valid input.")
         exit()
 
     word_count, char_count = count_words(text)
