@@ -1,35 +1,36 @@
+import sys
+
 def count_words(text):
     """
-    Counts the number of words and characters (excluding extra spaces)
-    in the given text.
+    Counts the number of words and characters
+    after cleaning extra spaces and newlines.
     """
 
+    # Normalize whitespace (handles multi-line input)
+    cleaned_text = " ".join(text.split())
+
     # Handle empty input
-    if not text.strip():
+    if not cleaned_text:
         return 0, 0
 
-    # Clean text: remove leading/trailing spaces
-    cleaned_text = text.strip()
-
-    # Count words
     words = cleaned_text.split()
-
-    # Count characters (excluding extra spaces at start/end)
     character_count = len(cleaned_text)
 
     return len(words), character_count
 
 
 if __name__ == "__main__":
-    text = input("Enter text: ")
+    print("Enter text (Ctrl+D on Linux/macOS, Ctrl+Z then Enter on Windows):")
 
-# Check for empty input
-    if not text.strip():
-        print("❌ No input provided. Please enter valid input.")
-        exit()
+    # Read multi-paragraph input
+    text = sys.stdin.read()
 
     word_count, char_count = count_words(text)
 
-    print(f"Words: {word_count}")
-    print(f"Characters (excluding extra spaces): {char_count}")
+    if word_count == 0:
+        print("❌ No input provided. Please enter valid input.")
+    else:
+        print(f"Words: {word_count}")
+        print(f"Characters (excluding extra spaces): {char_count}")
+
 
