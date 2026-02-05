@@ -9,6 +9,12 @@ Perfect for:
 * Python beginners
 * Anyone who wants to make a quick, meaningful PR
 
+## 🧭 Who is this for?
+
+- Students preparing for technical interviews
+- Beginners practicing common interview questions
+- Anyone wanting instant AI-based feedback
+
 ---
 
 ## 📌 What’s Inside
