@@ -31,6 +31,7 @@ if __name__ == "__main__":
         print("❌ No input provided. Please enter valid input.")
     else:
         print(f"Words: {word_count}")
-        print(f"Characters (excluding extra spaces): {char_count}")
+        print(f"Characters (including spaces): {char_count}")
+
 
 
